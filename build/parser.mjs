@@ -181,6 +181,7 @@ class Parser {
     this.addTradable(result);
     this.addDucats(result, data.wikia.ducats);
     this.addDropRate(result, data.drops);
+    this.addSyndicateDropRate(result, data.wikia.syndicates);
     this.addPatchlogs(result, data.patchlogs);
     this.addAdditionalWikiaData(result, category, data.wikia);
     this.detectPrime(result);
@@ -763,6 +764,63 @@ class Parser {
         .map(dropMap)
     );
     data.sort(dropComparator);
+    return data;
+  }
+
+  /**
+   * @typedef {Object} SyndicateWare
+   * @property {string} name
+   * @property {string} value
+   * @property {string} rank
+   */
+  /**
+   * Add drop chances based on official drop tables
+   * @param {Item} item to add droprate to
+   * @param {Objects<string, SyndicateWare>} syndicates to find item drops from syndicates
+   */
+  addSyndicateDropRate(item, syndicates) {
+    // Don't look for drop rates on item itself if it has components.
+    if (item.components) {
+      // eslint-disable-next-line no-restricted-syntax
+      for (const component of item.components) {
+        if (component.uniqueName.includes('/Weapons/')) {
+          const data = this.findSyndicateDropLocations(`${item.name} ${component.name}`, syndicates);
+          if (data.length) {
+            component.drops = dedupe([...component.drops, ...data]);
+          }
+        }
+      }
+    } else if (item.name !== 'Blueprint') {
+      // Last word of relic is intact/rad, etc. instead of 'Relic'
+      const name = item.type === 'Relic' ? item.name.replace(/\s(\w+)$/, ' Relic') : item.name;
+      const data = this.findSyndicateDropLocations(name, syndicates);
+      if (data.length) {
+        if (!item.drops) {
+          item.drops = [];
+        }
+        item.drops = dedupe([...item.drops, ...data]);
+      }
+    }
+  }
+
+  /**
+   * Add drop chances based on syndicate wares
+   * @param {string} itemName the itemname to search syndicate locations for
+   * @param {Objects<string, SyndicateWare>} syndicates to find item drops from syndicates
+   * @returns {Iterable<Array<DropRate>>}
+   */
+  findSyndicateDropLocations(itemName, syndicates) {
+    const match = new RegExp(`^${itemName}( \\([\\w\\s]+\\))?$`, 'i');
+    const data = [];
+
+    Object.keys(syndicates).forEach((syndicate) => {
+      syndicates[syndicate].forEach((ware) => {
+        if (match.test(ware.name)) {
+          data.push({ chance: '', location: syndicate, rarity: `${ware.rank} (${ware.value})`, type: ware.name });
+        }
+      });
+    });
+
     return data;
   }
 

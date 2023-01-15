@@ -10,7 +10,7 @@
   },
   "scripts": {
     "build": "node ./build/build.mjs",
-    "test": "nyc mocha --exclude test/*.regression.spec.mjs",
+    "test": "NODE_OPTIONS=--max_old_space_size=4096 nyc mocha --exclude test/*.regression.spec.mjs",
     "regression": "mocha --include test/index.regression.spec.mjs --exclude test/index.spec.mjs",
     "lint": "eslint --ignore-path .gitignore .",
     "lint:fix": "eslint --ignore-path .gitignore . --fix",

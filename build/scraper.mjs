@@ -1,17 +1,18 @@
 import Agent from 'socks5-http-client/lib/Agent.js';
 import fetch from 'node-fetch';
 import lzma from 'lzma';
-import cheerio from 'cheerio';
 
 import { Generator as RelicGenerator } from '@wfcd/relics';
 import patchlogs from 'warframe-patchlogs';
 
+import * as cheerio from 'cheerio';
 import Progress from './progress.mjs';
 import ModScraper from './wikia/scrapers/ModScraper.mjs';
 import WeaponScraper from './wikia/scrapers/WeaponScraper.mjs';
 import WarframeScraper from './wikia/scrapers/WarframeScraper.mjs';
 import VersionScraper from './wikia/scrapers/VersionScraper.mjs';
 import readJson from './readJson.mjs';
+import SyndicateScraper from './wikia/scrapers/SyndicateScraper.mjs';
 
 const locales = await readJson(new URL('../config/locales.json', import.meta.url));
 
@@ -180,7 +181,7 @@ class Scraper {
    * @returns {WikiaData}
    */
   async fetchWikiaData() {
-    const bar = new Progress('Fetching Wikia Data', 5);
+    const bar = new Progress('Fetching Wikia Data', 6);
     const ducats = [];
     const ducatsWikia = await get('http://warframe.wikia.com/wiki/Ducats/Prices/All');
     const $ = cheerio.load(ducatsWikia);
@@ -192,6 +193,8 @@ class Scraper {
     });
     bar.tick();
 
+    const syndicates = await new SyndicateScraper().scrape();
+    bar.tick();
     const weapons = await new WeaponScraper().scrape();
     bar.tick();
     const warframes = await new WarframeScraper().scrape();
@@ -207,6 +210,7 @@ class Scraper {
       mods,
       versions,
       ducats,
+      syndicates,
     };
   }
 
