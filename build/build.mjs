@@ -50,7 +50,7 @@ class Build {
     const i18n = parser.applyI18n(data, raw.i18n);
     const all = await this.saveJson(data, i18n);
     await this.saveWarnings(parsed.warnings);
-    await this.saveImages(all, raw.manifest);
+    // await this.saveImages(all, raw.manifest);
     await this.updateReadme(raw.patchlogs);
 
     // Log number of warnings at the end of the script

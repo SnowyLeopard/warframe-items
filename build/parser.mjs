@@ -786,6 +786,9 @@ class Parser {
         if (component.uniqueName.includes('/Weapons/')) {
           const data = this.findSyndicateDropLocations(`${item.name} ${component.name}`, syndicates);
           if (data.length) {
+            if (!component.drops) {
+              component.drops = [];
+            }
             component.drops = dedupe([...component.drops, ...data]);
           }
         }
@@ -816,7 +819,7 @@ class Parser {
     Object.keys(syndicates).forEach((syndicate) => {
       syndicates[syndicate].forEach((ware) => {
         if (match.test(ware.name)) {
-          data.push({ chance: '', location: syndicate, rarity: `${ware.rank} (${ware.value})`, type: ware.name });
+          data.push({ location: syndicate, rarity: `${ware.rank} (${ware.value})`, type: ware.name });
         }
       });
     });
